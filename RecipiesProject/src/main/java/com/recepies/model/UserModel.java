@@ -4,12 +4,11 @@ import lombok.Data;
 
 
 @Data
-public class User {
+public class UserModel {
 	
 	private String firstName;
 	private String lastName;
 	private String userName;
-	private String email;
 	private String profilePicturePath;
 
 }

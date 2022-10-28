@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,65 +17,39 @@ import javax.imageio.ImageIO;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.recepies.dao.HomePageDAO;
-import com.recepies.model.Recepie;
+import com.recepies.entities.User;
+import com.recepies.model.CommentModel;
+import com.recepies.model.RecepieModel;
 import com.recepies.model.RecepieRequest;
 
 public class RecepieUtils {
 
-	public static String saveAnImage(RecepieRequest request, String filePath) {
-		MultipartFile file = request.getImageOfTheRecepie();
-		String fileName = request.getPublishedBy() + System.currentTimeMillis()
-				+ request.getImageOfTheRecepie().getOriginalFilename();
-		String completeFilepath = filePath + fileName;
-		System.out.println("filePath " + filePath);
-		System.out.println(file);
-		try {
-			file.transferTo(new File(completeFilepath));
-		} catch (IllegalStateException | IOException e) {
-			e.printStackTrace();
-			return "failure";
-		}
-		return fileName;
 
-	}
-
-	public static String buildAnURI(String nameOftheImageInFileSystem) throws UnknownHostException {
-		InetAddress ip = InetAddress.getLocalHost();
-		return ip.getHostAddress().toString() + ":8080/api/recepies/" + nameOftheImageInFileSystem;
-	}
-
-	public static byte[] ImageFetch(String imageName, String filePath) throws IOException {
-
-		// FileReader reader = new FileReader(new
-		// File("C:\\Users\\sanjay\\Downloads\\san.JPEG"));
-		BufferedImage bImage = ImageIO.read(new File(filePath + imageName));
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		if (imageName.toLowerCase().contains(".jpeg"))
-			ImageIO.write(bImage, "jpeg", bos);
-		else if (imageName.toLowerCase().contains(".jpg"))
-			ImageIO.write(bImage, "jpg", bos);
-		else if (imageName.toLowerCase().contains(".png"))
-			ImageIO.write(bImage, "png", bos);
-		byte[] data = bos.toByteArray();
-		return data;
-	}
-	public static List<Recepie> buildRecepieModel(HomePageDAO homePageDAO) {
-		return StreamSupport.stream(homePageDAO.getAllRecepies().spliterator(), false).collect(Collectors.toList())
-				.stream().map(recepieEntity -> {
-					Recepie recepieModel = new Recepie();
-					recepieModel.setDateOfPublishing(recepieEntity.getDateOfPublishing());
-					recepieModel.setDescription(recepieEntity.getDescription());
-					recepieModel.setIngredients(recepieEntity.getIngredients());
-					recepieModel.setName(recepieEntity.getName());
-					recepieModel.setProcedureOfTheRecepie(recepieEntity.getProcedureOfTheRecepie());
-					recepieModel.setPublishedBy(recepieEntity.getPublishedBy());
-					recepieModel.setRecepieId(recepieEntity.getRecepieId());
-					recepieModel.setRecepieURL(recepieEntity.getRecepieURL());
-
-					return recepieModel;
-
-				}).collect(Collectors.toList());
-	}
+	/*
+	 * public static List<RecepieModel> buildRecepieModel(HomePageDAO
+	 * homePageDAO,boolean like) { return
+	 * StreamSupport.stream(homePageDAO.getAllRecepies().spliterator(),
+	 * false).collect(Collectors.toList()) .stream().map(recepieEntity
+	 * ->RecepieUtils.buildRecepieModel(recepieEntity, like)
+	 * 
+	 * 
+	 * { RecepieModel recepieModel = new RecepieModel();
+	 * recepieModel.setDateOfPublishing(recepieEntity.getDateOfPublishing());
+	 * recepieModel.setDescription(recepieEntity.getDescription());
+	 * recepieModel.setIngredients(recepieEntity.getIngredients());
+	 * recepieModel.setName(recepieEntity.getName());
+	 * recepieModel.setProcedureOfTheRecepie(recepieEntity.getProcedureOfTheRecepie(
+	 * )); recepieModel.setPublishedBy(recepieEntity.getPublishedBy());
+	 * recepieModel.setRecepieId(recepieEntity.getRecepieId());
+	 * recepieModel.setRecepieURL(recepieEntity.getRecepieURL());
+	 * recepieModel.setCommentModels(recepieEntity.getComments().stream()
+	 * .map(comment ->
+	 * RecepieUtils.buildCommentModel(comment)).collect(Collectors.toList()));
+	 * 
+	 * return recepieModel;
+	 * 
+	 * }).collect(Collectors.toList()); }
+	 */
 
 	public static com.recepies.entities.Recepie buildRecepieEntity(String uri, RecepieRequest request) {
 		com.recepies.entities.Recepie recepie = new com.recepies.entities.Recepie();
@@ -86,7 +61,42 @@ public class RecepieUtils {
 		recepie.setProcedureOfTheRecepie(request.getProcedureOfTheRecepie());
 		recepie.setRecepieURL(uri);
 		return recepie;
-		
+
+	}
+
+	public static com.recepies.model.RecepieModel buildRecepieModel(com.recepies.entities.Recepie recepieEntity,
+			boolean like) {
+		com.recepies.model.RecepieModel recepieModel = new com.recepies.model.RecepieModel();
+		recepieModel.setRecepieId(recepieEntity.getRecepieId());
+		recepieModel.setDateOfPublishing(new Date());
+		recepieModel.setDescription(recepieEntity.getDescription());
+		recepieModel.setIngredients(recepieEntity.getIngredients());
+		recepieModel.setName(recepieEntity.getName());
+		recepieModel.setPublishedBy(recepieEntity.getPublishedBy());
+		recepieModel.setProcedureOfTheRecepie(recepieEntity.getProcedureOfTheRecepie());
+		recepieModel.setRecepieURL(recepieEntity.getRecepieURL());
+		recepieModel.setCommentModels(recepieEntity.getComments() != null ? recepieEntity.getComments().stream()
+				.map(x -> RecepieUtils.buildCommentModel(x)).collect(Collectors.toList()) : new ArrayList<>());
+		recepieModel.setWheatherLikedByuser(like);
+		return recepieModel;
+
+	}
+
+	public static com.recepies.model.CommentModel buildCommentModel(com.recepies.entities.Comment commentEntity) {
+		CommentModel commentModel = new CommentModel();
+		commentModel.setCommentedContent(commentEntity.getCommentedContent());
+		commentModel.setPostedBy(commentEntity.getPostedBy());
+		commentModel.setPostedOnRecepie(commentEntity.getRecepie().getRecepieId());
+		return commentModel;
+	}
+
+	public static com.recepies.entities.Comment buildCommentEntity(CommentModel commentModel,
+			com.recepies.entities.Recepie recepie) {
+		com.recepies.entities.Comment commentEntity = new com.recepies.entities.Comment();
+		commentEntity.setCommentedContent(commentModel.getCommentedContent());
+		commentEntity.setPostedBy(commentModel.getPostedBy());
+		commentEntity.setRecepie(recepie);
+		return commentEntity;
 	}
 
 }

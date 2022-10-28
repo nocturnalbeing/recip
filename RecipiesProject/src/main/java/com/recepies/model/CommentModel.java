@@ -1,11 +1,13 @@
 package com.recepies.model;
 
 import lombok.Data;
+import lombok.ToString;
 
 @Data
-public class Comment {
+@ToString
+public class CommentModel {
 
 private String commentedContent;
 private String postedBy;
-private String postedOnRecepie;
+private Long postedOnRecepie;
 }

@@ -1,13 +1,12 @@
 package com.recepies.model;
 
 import java.util.Date;
-
-import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
 
 import lombok.Data;
 
 @Data
-public class Recepie {
+public class RecepieModel { 
 
 	private Long recepieId;
 	private String name;
@@ -17,5 +16,7 @@ public class Recepie {
 	private Date dateOfPublishing;
 	private String publishedBy;
 	private String recepieURL;
+	private List<CommentModel> commentModels;
+	private boolean wheatherLikedByuser;
 
 }
